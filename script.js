@@ -1,5 +1,7 @@
-const MAX_ROUNDS = 10;
+const MAX_ROUNDS = 5;
+const RESULT_DELAY_MS = 3000;
 const CHOICES = ["pierre", "feuille", "ciseaux"];
+
 const choiceEmoji = {
   pierre: "🪨",
   feuille: "📄",
@@ -7,43 +9,42 @@ const choiceEmoji = {
 };
 
 const winMessages = [
-  "Le pare-feu bloque l'attaque. DarkHood rage quitte son VPN.",
-  "Le phishing est neutralisé: l'e-mail finit en spam éternel.",
-  "Le SOC applaudit: alerte traitée avant la pause café.",
-  "Ton MFA s'active et le cybercriminel oublie son mot de passe.",
-  "Le ransomware se chiffre lui-même. Belle ironie.",
-  "Le botnet est redirigé vers un tuto 'Comment devenir jardinier'.",
-  "Ton patch Tuesday est si propre que même les bugs saluent.",
-  "Le scan de vulnérabilité affiche: 'Rien à voir, circulez'.",
-  "DarkHood tente une SQLi, ton WAF répond: 'Non merci'.",
-  "Le CISO gagne: la cybersécurité est servie avec cravate.",
+  "Le WAF bloque l'injection SQL. L'attaquant rage quit.",
+  "L'EDR stoppe le ransomware avant le chiffrement. Le CISO garde ses cheveux.",
+  "Le SOC détecte le C2 en 4 minutes. Record battu.",
+  "La segmentation réseau contient la brèche. Le board ne saura jamais.",
+  "Le MFA résiste au phishing. L'attaquant retourne sur Telegram.",
+  "Le CERT isole le poste compromis avant la latéralisation. Chirurgical.",
+  "La threat intel avait prévu le vecteur. Le playbook se déroule sans accroc.",
+  "Le pen test interne avait trouvé la faille avant l'attaquant. Pour une fois.",
+  "Le backup restore fonctionne en 2h. Le DRP n'était pas juste un PDF.",
+  "Le zero trust fait son job : l'attaquant a un accès... à rien.",
 ];
 
 const loseMessages = [
-  "Le site web est piraté. Même la page 404 demande une rançon.",
-  "Le mot de passe 'azerty123' fuit sur un forum obscur.",
-  "Le faux support IT vient de récupérer tout l'annuaire.",
-  "Un stagiaire clique sur 'Gagner un iPhone': incident majeur.",
-  "DarkHood déploie un ransomware: les fichiers parlent en hiéroglyphes.",
-  "Le serveur redémarre en boucle, et la cafetière aussi.",
-  "Ton antivirus part en RTT au pire moment.",
-  "Le firewall laisse passer l'attaque 'juste cette fois'.",
-  "Un script inconnu supprime le dossier 'definitif_final_v7'.",
-  "Les hackers changent la home en 'Owned by DarkHood_404'.",
+  "Le VPN non patché cède. L'attaquant est admin domain en 47 minutes.",
+  "Les sauvegardes étaient sur le même VLAN. Elles sont chiffrées aussi.",
+  "Le stagiaire a cliqué. Le macro s'exécute. Cobalt Strike est déployé.",
+  "Le mot de passe admin était Welcome2024!. Brute forcé en 3 secondes.",
+  "L'attaquant exfiltre 200 Go via DNS. Personne ne monitore le DNS.",
+  "La supply chain est compromise. La mise à jour contenait un backdoor.",
+  "Le SIEM était en maintenance. L'alerte n'a jamais sonné.",
+  "Le prestataire avait un accès VPN permanent. Et un mot de passe réutilisé.",
+  "Le shadow IT a gagné : le bucket S3 public contenait les données clients.",
+  "L'API exposée n'avait pas d'auth. Les données sont sur un forum depuis mardi.",
 ];
 
 const drawMessages = [
-  "Match nul: le cybercriminel hésite, toi aussi.",
-  "Égalité tactique: les deux camps rechargent le café.",
-  "Nul diplomatique: personne ne clique sur le lien suspect.",
-  "Zéro-day émotionnel: aucun camp ne prend l'avantage.",
-  "Statu quo: la guerre cyber continue.",
+  "Le SOC détecte l'intrus mais il a déjà posé sa persistence. Match nul.",
+  "La vuln web est patchée mais celle du SaaS attend depuis 6 mois.",
+  "L'attaquant est bloqué sur le réseau IT. Mais il a trouvé l'OT.",
+  "Le ransomware est stoppé. Mais l'attaquant a déjà exfiltré les données.",
+  "Le phishing est bloqué par le filtre mail. L'attaquant passe par Teams.",
+  "L'accès est révoqué. Mais les autres credentials sont déjà sur le dark web.",
+  "Le chiffrement protège les données au repos. En transit, c'est une autre histoire.",
+  "L'audit de sécurité est passé. Mais l'auditeur n'a pas testé l'Active Directory.",
 ];
 
-const playerNameInput = document.getElementById("playerName");
-const startBtn = document.getElementById("startBtn");
-const playerTitle = document.getElementById("playerTitle");
-const playerNameLabel = document.getElementById("playerNameLabel");
 const playerChoiceEl = document.getElementById("playerChoice");
 const cpuChoiceEl = document.getElementById("cpuChoice");
 const playerScoreEl = document.getElementById("playerScore");
@@ -52,70 +53,216 @@ const drawScoreEl = document.getElementById("drawScore");
 const roundCountEl = document.getElementById("roundCount");
 const roundMessageEl = document.getElementById("roundMessage");
 const finalMessageEl = document.getElementById("finalMessage");
-const restartBtn = document.getElementById("restartBtn");
+const replayBtn = document.getElementById("replayBtn");
 const choiceButtons = document.querySelectorAll(".choice-btn");
+const bigResultEl = document.getElementById("bigResult");
+const continueBtn = document.getElementById("continueBtn");
+const menuDuelBtn = document.getElementById("menuDuelBtn");
+const menuRulesBtn = document.getElementById("menuRulesBtn");
+const menuResetBtn = document.getElementById("menuResetBtn");
 
 const state = {
-  started: false,
-  playerName: "RSSI",
   playerScore: 0,
   cpuScore: 0,
   draws: 0,
   rounds: 0,
+  resolvingRound: false,
+  inFinalScreen: false,
+  waitingContinue: false,
+  resultTimeoutId: null,
+  countdownIntervalId: null,
+  pendingRound: null,
 };
 
-startBtn.addEventListener("click", startGame);
-restartBtn.addEventListener("click", resetGame);
+continueBtn.addEventListener("click", handleContinue);
+replayBtn.addEventListener("click", resetGame);
+menuDuelBtn.addEventListener("click", showDuelInfo);
+menuRulesBtn.addEventListener("click", showRules);
+menuResetBtn.addEventListener("click", resetGame);
+
 choiceButtons.forEach((button) => {
   button.addEventListener("click", () => playRound(button.dataset.choice));
-  button.disabled = true;
 });
 
-function startGame() {
-  const rawName = playerNameInput.value.trim();
-  state.playerName = rawName || "RSSI";
-  state.started = true;
-  playerTitle.textContent = `RSSI ${state.playerName}`;
-  playerNameLabel.textContent = state.playerName;
-  roundMessageEl.textContent = `${state.playerName}, protège le SI et choisis ton arme.`;
-  startBtn.disabled = true;
-  playerNameInput.disabled = true;
-  choiceButtons.forEach((button) => {
-    button.disabled = false;
-  });
-}
+setMenuActive(menuDuelBtn);
+showBigResult("", "");
+updateScoreboard();
 
 function playRound(playerChoice) {
-  if (!state.started || state.rounds >= MAX_ROUNDS) {
+  if (state.resolvingRound || state.inFinalScreen || state.waitingContinue || state.rounds >= MAX_ROUNDS) {
     return;
   }
 
+  state.resolvingRound = true;
+  disableChoiceButtons();
+  continueBtn.classList.add("hidden");
+  replayBtn.classList.add("hidden");
+  finalMessageEl.textContent = "";
+
   const cpuChoice = randomChoice();
+  const outcome = evaluateRound(playerChoice, cpuChoice);
+  const message = pickRoundMessage(outcome);
+  state.pendingRound = { outcome, playerChoice, cpuChoice, message };
+
+  playerChoiceEl.textContent = `${capitalize(playerChoice)} ${choiceEmoji[playerChoice]}`;
+  cpuChoiceEl.textContent = "Choix en cours... 🕶️";
+
+  startCountdown();
+}
+
+function startCountdown() {
+  clearRoundTimers();
+  let countdown = 3;
+  showCountdown(countdown);
+
+  state.countdownIntervalId = setInterval(() => {
+    countdown -= 1;
+    if (countdown >= 1) {
+      showCountdown(countdown);
+    }
+  }, 1000);
+
+  state.resultTimeoutId = setTimeout(resolveRound, RESULT_DELAY_MS);
+}
+
+function showCountdown(value) {
+  const countdownText = `${value}`;
+  roundMessageEl.textContent = `Suspense: ${countdownText}...`;
+  showBigResult(countdownText, "countdown");
+}
+
+function resolveRound() {
+  clearRoundTimers();
+
+  const roundData = state.pendingRound;
+  if (!roundData) {
+    state.resolvingRound = false;
+    enableChoiceButtons();
+    return;
+  }
+
+  state.pendingRound = null;
   state.rounds += 1;
 
-  const outcome = evaluateRound(playerChoice, cpuChoice);
-  let message = "";
-
-  if (outcome === "win") {
+  if (roundData.outcome === "win") {
     state.playerScore += 1;
-    message = randomFrom(winMessages);
-  } else if (outcome === "lose") {
+  } else if (roundData.outcome === "lose") {
     state.cpuScore += 1;
-    message = randomFrom(loseMessages);
   } else {
     state.draws += 1;
-    message = randomFrom(drawMessages);
   }
 
-  playerChoiceEl.textContent = `${playerChoice} ${choiceEmoji[playerChoice]}`;
-  cpuChoiceEl.textContent = `${cpuChoice} ${choiceEmoji[cpuChoice]}`;
-  roundMessageEl.textContent = message;
+  const playerObject = capitalize(roundData.playerChoice);
+  const cpuObject = capitalize(roundData.cpuChoice);
+  const outcomeLabel = outcomeToLabel(roundData.outcome);
 
+  playerChoiceEl.textContent = `${playerObject} ${choiceEmoji[roundData.playerChoice]}`;
+  cpuChoiceEl.textContent = `${cpuObject} ${choiceEmoji[roundData.cpuChoice]}`;
+
+  roundMessageEl.textContent = `${outcomeLabel} : ${playerObject} contre ${cpuObject}. ${roundData.message}`;
+  showBigResult(
+    `${outcomeLabel} : ${playerObject} contre ${cpuObject}\n${roundData.message}`,
+    roundData.outcome,
+  );
   updateScoreboard();
 
+  state.resolvingRound = false;
+
   if (state.rounds >= MAX_ROUNDS) {
-    endGame();
+    showFinalAndReset();
+    return;
   }
+
+  state.waitingContinue = true;
+  continueBtn.classList.remove("hidden");
+}
+
+function handleContinue() {
+  if (!state.waitingContinue || state.inFinalScreen) {
+    return;
+  }
+
+  state.waitingContinue = false;
+  continueBtn.classList.add("hidden");
+  showBigResult("", "");
+  roundMessageEl.textContent = "Choisis une icône: suspense 3, 2, 1 puis résultat.";
+  enableChoiceButtons();
+}
+
+function showFinalAndReset() {
+  state.inFinalScreen = true;
+  state.waitingContinue = false;
+  disableChoiceButtons();
+  continueBtn.classList.add("hidden");
+  replayBtn.classList.remove("hidden");
+
+  let finalTitle = "";
+  let finalClass = "";
+  if (state.playerScore > state.cpuScore) {
+    finalTitle = "Bilan: RSSI Gagne";
+    finalClass = "win";
+    finalMessageEl.style.color = "#8cf8b5";
+    finalMessageEl.textContent =
+      "Bravo, tu as su contenir l'attaque ! Rejoue pour montrer ta détermination !";
+  } else if (state.playerScore < state.cpuScore) {
+    finalTitle = "Bilan: Hacker Gagne";
+    finalClass = "lose";
+    finalMessageEl.style.color = "#ff9eaa";
+    finalMessageEl.textContent = "Dommage, l'attaquant a réussi, augmente ton budget et rejoue !";
+  } else {
+    finalTitle = "Bilan: Égalité";
+    finalClass = "draw";
+    finalMessageEl.style.color = "#ffe08a";
+    finalMessageEl.textContent =
+      "Attaque interrompue... mais l'attaquant n'est-il pas encore présent ? Rejoue pour le savoir !";
+  }
+
+  roundMessageEl.textContent = `Score final (5 manches): RSSI ${state.playerScore} - ${state.cpuScore} DarkHood_404.`;
+  showBigResult(finalTitle, finalClass);
+}
+
+function resetGame() {
+  clearRoundTimers();
+
+  state.playerScore = 0;
+  state.cpuScore = 0;
+  state.draws = 0;
+  state.rounds = 0;
+  state.resolvingRound = false;
+  state.inFinalScreen = false;
+  state.waitingContinue = false;
+  state.pendingRound = null;
+
+  playerChoiceEl.textContent = "-";
+  cpuChoiceEl.textContent = "-";
+  roundMessageEl.textContent = "Choisis une icône: suspense 3, 2, 1 puis résultat.";
+  finalMessageEl.textContent = "";
+  continueBtn.classList.add("hidden");
+  replayBtn.classList.add("hidden");
+  showBigResult("", "");
+  updateScoreboard();
+  enableChoiceButtons();
+  setMenuActive(menuDuelBtn);
+}
+
+function showRules() {
+  setMenuActive(menuRulesBtn);
+  roundMessageEl.textContent =
+    "Règles: Pierre bat Ciseaux, Ciseaux bat Feuille, Feuille bat Pierre. Bilan auto au bout de 5 tours.";
+  showBigResult("Règles", "draw");
+}
+
+function showDuelInfo() {
+  setMenuActive(menuDuelBtn);
+  if (state.resolvingRound || state.inFinalScreen) {
+    return;
+  }
+  if (state.waitingContinue) {
+    roundMessageEl.textContent = "Lis le message central puis clique sur Continuer.";
+    return;
+  }
+  roundMessageEl.textContent = "Choisis une icône: suspense 3, 2, 1 puis résultat.";
+  showBigResult("", "");
 }
 
 function evaluateRound(player, cpu) {
@@ -131,44 +278,24 @@ function evaluateRound(player, cpu) {
   return playerWins ? "win" : "lose";
 }
 
-function endGame() {
-  choiceButtons.forEach((button) => {
-    button.disabled = true;
-  });
-  restartBtn.classList.remove("hidden");
-
-  if (state.playerScore > state.cpuScore) {
-    finalMessageEl.style.color = "#0f6d3a";
-    finalMessageEl.textContent = `Victoire finale de ${state.playerName}: le RSSI sauve l'entreprise.`;
-  } else if (state.playerScore < state.cpuScore) {
-    finalMessageEl.style.color = "#9e1f1f";
-    finalMessageEl.textContent = `Défaite... DarkHood_404 publie vos memes internes.`;
-  } else {
-    finalMessageEl.style.color = "#745800";
-    finalMessageEl.textContent = "Égalité générale: comité de crise + viennoiseries obligatoires.";
+function pickRoundMessage(outcome) {
+  if (outcome === "win") {
+    return randomFrom(winMessages);
   }
+  if (outcome === "lose") {
+    return randomFrom(loseMessages);
+  }
+  return randomFrom(drawMessages);
 }
 
-function resetGame() {
-  state.started = false;
-  state.playerName = "RSSI";
-  state.playerScore = 0;
-  state.cpuScore = 0;
-  state.draws = 0;
-  state.rounds = 0;
-
-  playerChoiceEl.textContent = "-";
-  cpuChoiceEl.textContent = "-";
-  roundMessageEl.textContent = "Entre ton prénom puis choisis une arme de cybersécurité.";
-  finalMessageEl.textContent = "";
-  restartBtn.classList.add("hidden");
-
-  playerNameInput.value = "";
-  playerNameInput.disabled = false;
-  startBtn.disabled = false;
-  playerTitle.textContent = "RSSI";
-  playerNameLabel.textContent = "Toi";
-  updateScoreboard();
+function outcomeToLabel(outcome) {
+  if (outcome === "win") {
+    return "Gagné";
+  }
+  if (outcome === "lose") {
+    return "Perdu";
+  }
+  return "Égalité";
 }
 
 function updateScoreboard() {
@@ -178,10 +305,59 @@ function updateScoreboard() {
   drawScoreEl.textContent = String(state.draws);
 }
 
+function showBigResult(text, kind) {
+  bigResultEl.classList.remove("countdown", "win", "lose", "draw", "hidden");
+
+  if (!text) {
+    bigResultEl.textContent = "";
+    bigResultEl.classList.add("hidden");
+    return;
+  }
+
+  bigResultEl.textContent = text;
+  if (kind) {
+    bigResultEl.classList.add(kind);
+  }
+}
+
+function setMenuActive(activeButton) {
+  [menuDuelBtn, menuRulesBtn, menuResetBtn].forEach((button) => button.classList.remove("active"));
+  if (activeButton) {
+    activeButton.classList.add("active");
+  }
+}
+
+function clearRoundTimers() {
+  if (state.resultTimeoutId) {
+    clearTimeout(state.resultTimeoutId);
+    state.resultTimeoutId = null;
+  }
+  if (state.countdownIntervalId) {
+    clearInterval(state.countdownIntervalId);
+    state.countdownIntervalId = null;
+  }
+}
+
+function disableChoiceButtons() {
+  choiceButtons.forEach((button) => {
+    button.disabled = true;
+  });
+}
+
+function enableChoiceButtons() {
+  choiceButtons.forEach((button) => {
+    button.disabled = false;
+  });
+}
+
 function randomChoice() {
   return CHOICES[Math.floor(Math.random() * CHOICES.length)];
 }
 
 function randomFrom(array) {
   return array[Math.floor(Math.random() * array.length)];
+}
+
+function capitalize(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }

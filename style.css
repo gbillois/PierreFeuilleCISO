@@ -1,91 +1,131 @@
 :root {
-  --bg1: #f2f7ff;
-  --bg2: #dbe8ff;
-  --panel: #ffffff;
-  --accent: #0a5ad8;
-  --accent-dark: #083f95;
-  --danger: #b32020;
-  --text: #13203a;
-  --muted: #596b8c;
-  --good: #177a42;
+  --bg-deep: #1a1644;
+  --bg-mid: #2d2a68;
+  --panel: rgba(20, 27, 56, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.2);
+  --gold: #ffd56a;
+  --orange: #ff8e42;
+  --orange-dark: #d5682e;
+  --mint: #74f3d8;
+  --danger: #ff6978;
+  --text: #f9fbff;
+  --subtle: #c7d4ff;
+  --shadow: 0 12px 32px rgba(8, 12, 30, 0.42);
 }
 
 * {
   box-sizing: border-box;
 }
 
+button {
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+  touch-action: manipulation;
+}
+
 body {
   margin: 0;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-  color: var(--text);
-  background: linear-gradient(160deg, var(--bg1), var(--bg2));
   min-height: 100vh;
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 20% 20%, #4e7bff 0%, rgba(78, 123, 255, 0) 35%),
+    radial-gradient(circle at 80% 70%, #1cd4b7 0%, rgba(28, 212, 183, 0) 30%),
+    linear-gradient(160deg, var(--bg-deep), #262058 45%, var(--bg-mid));
 }
 
 .game {
-  width: min(980px, 94vw);
-  margin: 20px auto;
-  padding: 18px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 2px solid #bfd4ff;
-  border-radius: 16px;
-  box-shadow: 0 14px 30px rgba(10, 30, 70, 0.12);
+  width: min(1020px, 95vw);
+  margin: 12px auto;
+  padding: 16px;
+  background: rgba(10, 16, 38, 0.72);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
 }
 
 .hero {
   text-align: center;
 }
 
-.hero h1 {
+.kicker {
   margin: 2px 0;
-  font-size: clamp(1.8rem, 3.8vw, 2.6rem);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  opacity: 0.86;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 4px 0;
+  font-family: "Bangers", "Nunito", cursive;
+  font-size: clamp(2rem, 5.4vw, 3rem);
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-shadow: 0 2px 0 rgba(16, 20, 40, 0.8);
 }
 
 .hero p {
   margin: 0;
-  color: var(--muted);
+  color: var(--subtle);
 }
 
-.name-box {
-  margin-top: 16px;
+.top-menu {
+  margin-top: 10px;
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
   justify-content: center;
-  align-items: center;
+  flex-wrap: wrap;
 }
 
-input {
-  border: 2px solid #b7c9ee;
-  border-radius: 10px;
-  padding: 10px;
-  min-width: 180px;
-  font-size: 1rem;
-}
-
-button {
-  border: 0;
-  background: var(--accent);
-  color: #fff;
-  border-radius: 10px;
-  padding: 10px 14px;
+.menu-btn {
+  border: none;
+  border-radius: 11px;
+  min-width: 98px;
+  min-height: 38px;
+  color: #f7fbff;
+  font-weight: 800;
+  letter-spacing: 0.03em;
   cursor: pointer;
-  font-weight: 700;
-  transition: transform 0.12s ease, background 0.2s ease;
+  background: linear-gradient(180deg, #4f74d4, #2f4f9f);
+  box-shadow: 0 3px 0 #1b2f65;
 }
 
-button:hover {
-  background: var(--accent-dark);
-  transform: translateY(-1px);
+.menu-btn.active {
+  color: #2b1d0e;
+  background: linear-gradient(180deg, #ffdb78, #c58a2d);
+  box-shadow: 0 3px 0 #80521a;
+}
+
+.mission-box {
+  margin-top: 14px;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 11px;
+}
+
+.mission-box p {
+  margin: 0;
+  font-weight: 700;
+}
+
+.mission-sub {
+  color: #d7e3ff;
+  font-size: 0.93rem;
+  opacity: 0.95;
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .arena {
-  margin-top: 18px;
+  position: relative;
+  margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
@@ -93,21 +133,22 @@ button:disabled {
 
 .character-card {
   background: var(--panel);
-  border: 2px solid #d6e3ff;
-  border-radius: 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
   padding: 12px;
   text-align: center;
+  box-shadow: 0 10px 20px rgba(7, 10, 26, 0.28);
 }
 
 .character-card h2 {
-  margin: 2px 0 8px;
-  font-size: 1.1rem;
+  margin: 4px 0 6px;
+  color: #f9fcff;
 }
 
 .avatar {
   position: relative;
   width: 140px;
-  height: 175px;
+  height: 170px;
   margin: 0 auto 8px;
 }
 
@@ -188,31 +229,112 @@ button:disabled {
   border: 4px solid #263958;
 }
 
-.controls {
-  margin-top: 16px;
-  text-align: center;
-}
-
 .round-target {
-  margin: 0 0 8px;
-  color: var(--muted);
+  margin: 6px 0;
+  color: #d7e1ff;
+  font-size: 0.95rem;
 }
 
 .choices {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  display: grid;
+  gap: 8px;
+  max-width: 230px;
+  margin: 0 auto;
 }
 
 .choice-btn {
-  min-width: 110px;
+  border: none;
+  border-radius: 11px;
+  color: #fdfdff;
+  font-size: 1rem;
+  font-weight: 800;
+  min-height: 42px;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, var(--orange), var(--orange-dark));
+  box-shadow: 0 3px 0 #8c3f1d;
+}
+
+.rules-hint {
+  margin: 9px 0 0;
+  font-size: 0.85rem;
+  color: #d1ddff;
+}
+
+.choice-text {
+  margin: 4px 0 0;
+  color: #d7e2ff;
+  font-size: 1rem;
+}
+
+.result-center {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  width: min(88%, 420px);
+  z-index: 8;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.big-result {
+  min-height: 94px;
+  padding: 14px;
+  border-radius: 14px;
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+  font-size: clamp(1.02rem, 2.6vw, 1.35rem);
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: 0.01em;
+  white-space: pre-line;
+  color: #fff6d5;
+  background: rgba(15, 20, 40, 0.88);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+}
+
+.big-result.countdown {
+  font-family: "Bangers", "Nunito", cursive;
+  font-size: clamp(2.1rem, 6vw, 3rem);
+  letter-spacing: 0.05em;
+  color: var(--mint);
+}
+
+.big-result.win {
+  color: #9cffbc;
+  border-color: #88f7b3;
+}
+
+.big-result.lose {
+  color: #ff9eaa;
+  border-color: #ff9eaa;
+}
+
+.big-result.draw {
+  color: #ffe08a;
+  border-color: #ffe08a;
+}
+
+.continue-btn {
+  margin-top: 10px;
+  border: none;
+  border-radius: 11px;
+  min-height: 42px;
+  min-width: 130px;
+  color: #2d1f08;
+  font-weight: 800;
+  cursor: pointer;
+  background: linear-gradient(180deg, #ffdb78, #c58a2d);
+  box-shadow: 0 3px 0 #80521a;
 }
 
 .status {
-  margin-top: 15px;
-  background: #f8fbff;
-  border: 2px dashed #c9d9fb;
+  margin-top: 14px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
   border-radius: 14px;
   padding: 12px;
 }
@@ -228,26 +350,42 @@ button:disabled {
 .scoreboard p {
   margin: 0;
   padding: 8px;
-  background: #eaf1ff;
-  border-radius: 8px;
+  border-radius: 9px;
+  background: rgba(102, 126, 201, 0.27);
 }
 
 #playerScoreLabel {
-  color: var(--good);
+  color: #8cf8b5;
 }
 
 .message {
   margin: 12px 0 6px;
   text-align: center;
-  font-size: 1.05rem;
-  min-height: 2.2em;
+  font-size: 1.03rem;
+  min-height: 2.1em;
+  color: #dce7ff;
 }
 
 .final-message {
-  margin: 4px 0 8px;
+  margin: 6px 0 8px;
   text-align: center;
+  font-size: 1.15rem;
   font-weight: 800;
   min-height: 1.8em;
+}
+
+.replay-btn {
+  display: block;
+  margin: 0 auto;
+  border: none;
+  border-radius: 11px;
+  min-height: 42px;
+  min-width: 140px;
+  color: #f7fbff;
+  font-weight: 800;
+  cursor: pointer;
+  background: linear-gradient(180deg, #58b7a5, #2d7b6e);
+  box-shadow: 0 3px 0 #1f4f47;
 }
 
 .hidden {
@@ -257,21 +395,27 @@ button:disabled {
 #restartBtn {
   display: block;
   margin: 0 auto;
-  background: #2a7b43;
+  border: none;
+  border-radius: 11px;
+  min-height: 42px;
+  color: #f7fbff;
+  font-weight: 800;
+  cursor: pointer;
+  background: linear-gradient(180deg, #58b7a5, #2d7b6e);
+  box-shadow: 0 3px 0 #1f4f47;
 }
 
-#restartBtn:hover {
-  background: #1d5e33;
-}
-
-.choice-text {
-  margin: 4px 0 0;
-  color: var(--muted);
-}
-
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .arena {
     grid-template-columns: 1fr;
+  }
+
+  .result-center {
+    position: static;
+    transform: none;
+    margin: 2px auto;
+    width: min(100%, 420px);
+    order: 3;
   }
 
   .scoreboard {
