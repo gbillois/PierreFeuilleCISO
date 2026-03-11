@@ -375,8 +375,7 @@ button:disabled {
 }
 
 .replay-btn {
-  display: block;
-  margin: 0 auto;
+  margin-top: 10px;
   border: none;
   border-radius: 11px;
   min-height: 42px;
@@ -390,6 +389,22 @@ button:disabled {
 
 .hidden {
   display: none;
+}
+
+.emoji-fx-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 4200;
+}
+
+.emoji-particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform, opacity;
+  user-select: none;
 }
 
 #restartBtn {

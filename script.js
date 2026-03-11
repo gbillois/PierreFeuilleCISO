@@ -57,6 +57,7 @@ const replayBtn = document.getElementById("replayBtn");
 const choiceButtons = document.querySelectorAll(".choice-btn");
 const resultCenterEl = document.querySelector(".result-center");
 const bigResultEl = document.getElementById("bigResult");
+const emojiFxLayer = document.getElementById("emojiFxLayer");
 const continueBtn = document.getElementById("continueBtn");
 const menuDuelBtn = document.getElementById("menuDuelBtn");
 const menuRulesBtn = document.getElementById("menuRulesBtn");
@@ -72,6 +73,7 @@ const state = {
   waitingContinue: false,
   resultTimeoutId: null,
   countdownIntervalId: null,
+  fxTimeoutIds: [],
   pendingRound: null,
 };
 
@@ -156,13 +158,15 @@ function resolveRound() {
   const playerObject = capitalize(roundData.playerChoice);
   const cpuObject = capitalize(roundData.cpuChoice);
   const outcomeLabel = outcomeToLabel(roundData.outcome);
+  const roundLabel = `Manche ${state.rounds}/${MAX_ROUNDS}`;
 
   playerChoiceEl.textContent = `${playerObject} ${choiceEmoji[roundData.playerChoice]}`;
   cpuChoiceEl.textContent = `${cpuObject} ${choiceEmoji[roundData.cpuChoice]}`;
 
-  roundMessageEl.textContent = `${outcomeLabel} : ${playerObject} contre ${cpuObject}. ${roundData.message}`;
+  roundMessageEl.textContent =
+    `${roundLabel} — ${outcomeLabel} : ${playerObject} contre ${cpuObject}. ${roundData.message}`;
   showBigResult(
-    `${outcomeLabel} : ${playerObject} contre ${cpuObject}\n${roundData.message}`,
+    `${roundLabel}\n${outcomeLabel} : ${playerObject} contre ${cpuObject}\n${roundData.message}`,
     roundData.outcome,
   );
   updateScoreboard();
@@ -185,6 +189,7 @@ function handleContinue() {
 
   state.waitingContinue = false;
   continueBtn.classList.add("hidden");
+  clearEmojiEffects();
   showBigResult("", "");
   roundMessageEl.textContent = "Choisis une icône: suspense 3, 2, 1 puis résultat.";
   enableChoiceButtons();
@@ -220,10 +225,12 @@ function showFinalAndReset() {
 
   roundMessageEl.textContent = `Score final (5 manches): RSSI ${state.playerScore} - ${state.cpuScore} DarkHood_404.`;
   showBigResult(`${finalTitle}\n${finalMessageEl.textContent}`, finalClass);
+  playOutcomeEffect(finalClass, true);
 }
 
 function resetGame() {
   clearRoundTimers();
+  clearEmojiEffects();
 
   state.playerScore = 0;
   state.cpuScore = 0;
@@ -324,10 +331,108 @@ function showBigResult(text, kind) {
 }
 
 function syncResultModalState() {
-  const hasResult = !bigResultEl.classList.contains("hidden");
-  const waitingAck = !continueBtn.classList.contains("hidden");
-  const shouldShowModal = !state.inFinalScreen && (hasResult || waitingAck);
+  const shouldShowModal = state.resolvingRound || state.waitingContinue || state.inFinalScreen;
   resultCenterEl.classList.toggle("mobile-modal-active", shouldShowModal);
+}
+
+function playOutcomeEffect(outcome, isFinal = false) {
+  clearEmojiEffects();
+  if (!emojiFxLayer) {
+    return;
+  }
+
+  if (outcome === "win") {
+    launchEmojiFireworks(isFinal ? 5 : 3);
+    return;
+  }
+
+  if (outcome === "lose") {
+    launchEmojiRain("💀", isFinal ? 52 : 30);
+    return;
+  }
+
+  launchEmojiRain("❓", isFinal ? 44 : 24);
+}
+
+function launchEmojiFireworks(burstCount) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  for (let burst = 0; burst < burstCount; burst += 1) {
+    const timeoutId = setTimeout(() => {
+      const centerX = randomBetween(vw * 0.2, vw * 0.8);
+      const centerY = randomBetween(vh * 0.2, vh * 0.7);
+      const particles = 14;
+
+      for (let i = 0; i < particles; i += 1) {
+        const emoji = Math.random() < 0.5 ? "😀" : "👍";
+        const angle = randomBetween(0, Math.PI * 2);
+        const distance = randomBetween(60, 170);
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+        const particle = createEmojiParticle(emoji, randomBetween(20, 34));
+
+        animateAndRemove(particle, [
+          { transform: `translate(${centerX}px, ${centerY}px) scale(0.45)`, opacity: 0 },
+          { transform: `translate(${centerX + dx * 0.9}px, ${centerY + dy * 0.9}px) scale(1)`, opacity: 1, offset: 0.65 },
+          { transform: `translate(${centerX + dx}px, ${centerY + dy + 36}px) scale(0.8)`, opacity: 0 },
+        ], {
+          duration: randomBetween(850, 1300),
+          easing: "cubic-bezier(0.2, 0.6, 0.35, 1)",
+        });
+      }
+    }, burst * 230);
+
+    state.fxTimeoutIds.push(timeoutId);
+  }
+}
+
+function launchEmojiRain(emoji, count) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  for (let i = 0; i < count; i += 1) {
+    const x = randomBetween(0, vw);
+    const drift = randomBetween(-90, 90);
+    const rotate = randomBetween(-180, 180);
+    const delay = randomBetween(0, 450);
+    const duration = randomBetween(1200, 2200);
+    const particle = createEmojiParticle(emoji, randomBetween(18, 34));
+
+    animateAndRemove(particle, [
+      { transform: `translate(${x}px, -56px) rotate(0deg)`, opacity: 0 },
+      { transform: `translate(${x}px, ${vh * 0.15}px) rotate(${rotate * 0.25}deg)`, opacity: 1, offset: 0.12 },
+      { transform: `translate(${x + drift}px, ${vh + 68}px) rotate(${rotate}deg)`, opacity: 0.92 },
+    ], {
+      duration,
+      delay,
+      easing: "linear",
+    });
+  }
+}
+
+function createEmojiParticle(emoji, sizePx) {
+  const particle = document.createElement("span");
+  particle.className = "emoji-particle";
+  particle.textContent = emoji;
+  particle.style.fontSize = `${sizePx}px`;
+  emojiFxLayer.appendChild(particle);
+  return particle;
+}
+
+function animateAndRemove(element, keyframes, options) {
+  const animation = element.animate(keyframes, options);
+  animation.onfinish = () => {
+    element.remove();
+  };
+}
+
+function clearEmojiEffects() {
+  state.fxTimeoutIds.forEach((id) => clearTimeout(id));
+  state.fxTimeoutIds = [];
+  if (emojiFxLayer) {
+    emojiFxLayer.replaceChildren();
+  }
 }
 
 function setMenuActive(activeButton) {
@@ -366,6 +471,10 @@ function randomChoice() {
 
 function randomFrom(array) {
   return array[Math.floor(Math.random() * array.length)];
+}
+
+function randomBetween(min, max) {
+  return Math.random() * (max - min) + min;
 }
 
 function capitalize(value) {
