@@ -55,6 +55,7 @@ const roundMessageEl = document.getElementById("roundMessage");
 const finalMessageEl = document.getElementById("finalMessage");
 const replayBtn = document.getElementById("replayBtn");
 const choiceButtons = document.querySelectorAll(".choice-btn");
+const resultCenterEl = document.querySelector(".result-center");
 const bigResultEl = document.getElementById("bigResult");
 const continueBtn = document.getElementById("continueBtn");
 const menuDuelBtn = document.getElementById("menuDuelBtn");
@@ -199,18 +200,18 @@ function showFinalAndReset() {
   let finalTitle = "";
   let finalClass = "";
   if (state.playerScore > state.cpuScore) {
-    finalTitle = "Bilan: RSSI Gagne";
+    finalTitle = "Victoire finale";
     finalClass = "win";
     finalMessageEl.style.color = "#8cf8b5";
     finalMessageEl.textContent =
       "Bravo, tu as su contenir l'attaque ! Rejoue pour montrer ta détermination !";
   } else if (state.playerScore < state.cpuScore) {
-    finalTitle = "Bilan: Hacker Gagne";
+    finalTitle = "Défaite finale";
     finalClass = "lose";
     finalMessageEl.style.color = "#ff9eaa";
     finalMessageEl.textContent = "Dommage, l'attaquant a réussi, augmente ton budget et rejoue !";
   } else {
-    finalTitle = "Bilan: Égalité";
+    finalTitle = "Égalité finale";
     finalClass = "draw";
     finalMessageEl.style.color = "#ffe08a";
     finalMessageEl.textContent =
@@ -218,7 +219,7 @@ function showFinalAndReset() {
   }
 
   roundMessageEl.textContent = `Score final (5 manches): RSSI ${state.playerScore} - ${state.cpuScore} DarkHood_404.`;
-  showBigResult(finalTitle, finalClass);
+  showBigResult(`${finalTitle}\n${finalMessageEl.textContent}`, finalClass);
 }
 
 function resetGame() {
@@ -311,6 +312,7 @@ function showBigResult(text, kind) {
   if (!text) {
     bigResultEl.textContent = "";
     bigResultEl.classList.add("hidden");
+    syncResultModalState();
     return;
   }
 
@@ -318,6 +320,14 @@ function showBigResult(text, kind) {
   if (kind) {
     bigResultEl.classList.add(kind);
   }
+  syncResultModalState();
+}
+
+function syncResultModalState() {
+  const hasResult = !bigResultEl.classList.contains("hidden");
+  const waitingAck = !continueBtn.classList.contains("hidden");
+  const shouldShowModal = !state.inFinalScreen && (hasResult || waitingAck);
+  resultCenterEl.classList.toggle("mobile-modal-active", shouldShowModal);
 }
 
 function setMenuActive(activeButton) {
