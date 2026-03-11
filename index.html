@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pierre Feuille CISO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game">
+    <header class="hero">
+      <p class="kicker">Cyber-arène humoristique</p>
+      <h1>Pierre Feuille CISO</h1>
+      <p>Le duel du siècle: le RSSI en cravate contre le hacker en capuche.</p>
+      <nav class="top-menu" aria-label="Menu du jeu">
+        <button id="menuDuelBtn" class="menu-btn active" type="button">Duel</button>
+        <button id="menuRulesBtn" class="menu-btn" type="button">Règles</button>
+        <button id="menuResetBtn" class="menu-btn" type="button">Reset</button>
+      </nav>
+    </header>
+
+    <section class="name-box">
+      <label for="playerName">Prénom du RSSI héros:</label>
+      <input id="playerName" type="text" maxlength="20" placeholder="Ex: Alex">
+      <button id="startBtn">Lancer l'audit de sécurité</button>
+    </section>
+
+    <section class="arena">
+      <article class="character-card">
+        <h2 id="playerTitle">RSSI</h2>
+        <div class="avatar rssi">
+          <div class="head"></div>
+          <div class="body"></div>
+          <div class="tie"></div>
+          <div class="badge"></div>
+        </div>
+        <p class="choice-text">Choix: <span id="playerChoice">-</span></p>
+        <p class="round-target">Objectif: 10 manches</p>
+        <div class="choices">
+          <button class="choice-btn" data-choice="pierre">🪨 Pierre</button>
+          <button class="choice-btn" data-choice="feuille">📄 Feuille</button>
+          <button class="choice-btn" data-choice="ciseaux">✂️ Ciseaux</button>
+        </div>
+        <p class="rules-hint">Règles: Pierre bat Ciseaux, Ciseaux bat Feuille, Feuille bat Pierre.</p>
+      </article>
+
+      <div class="result-center">
+        <div id="bigResult" class="big-result">Prêt à défendre le SI</div>
+        <button id="continueBtn" class="continue-btn hidden" type="button">Continuer</button>
+      </div>
+
+      <article class="character-card">
+        <h2>Cybercriminel DarkHood_404</h2>
+        <div class="avatar hacker">
+          <div class="head"></div>
+          <div class="hood"></div>
+          <div class="body"></div>
+          <div class="laptop"></div>
+        </div>
+        <p class="choice-text">Choix: <span id="cpuChoice">-</span></p>
+      </article>
+    </section>
+
+    <section class="status">
+      <div class="scoreboard">
+        <p>Manches: <span id="roundCount">0</span>/10</p>
+        <p id="playerScoreLabel"><span id="playerNameLabel">Toi</span>: <span id="playerScore">0</span></p>
+        <p>DarkHood_404: <span id="cpuScore">0</span></p>
+        <p>Nuls: <span id="drawScore">0</span></p>
+      </div>
+      <p id="roundMessage" class="message">Entre ton prénom puis choisis une arme de cybersécurité.</p>
+      <p id="finalMessage" class="final-message"></p>
+      <button id="restartBtn" class="hidden">Rejouer une campagne</button>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
